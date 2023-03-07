@@ -76,8 +76,10 @@ func actionHandler(c echo.Context) (err error) {
 	ctx := context.Background()
 	switch body.Payload.Action.Trigger {
 	case "CREATE", "DAY-2":
+		c.Logger().Infof("Running create action: %s", body.Payload.Action.Identifier)
 		err = pu.Up(ctx, &body)
 	case "DELETE":
+		c.Logger().Infof("Running delete action: %s", body.Payload.Action.Identifier)
 		err = pu.Destroy(ctx, &body)
 	default:
 		return fmt.Errorf("unknown action: %s", body.Payload.Action.Identifier)

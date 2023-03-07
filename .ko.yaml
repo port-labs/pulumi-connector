@@ -1,1 +1,3 @@
 defaultBaseImage: pulumi/pulumi-go
+
+defaultPlatforms: all

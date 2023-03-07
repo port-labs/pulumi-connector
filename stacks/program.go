@@ -52,6 +52,7 @@ func Program(ctx context.Context, props map[string]any) (ProgramResult, error) {
 
 	err = w.InstallPlugin(ctx, "aws", "v5.30.0")
 	err = w.InstallPlugin(ctx, "civo", "v2.3.3")
+	err = w.InstallPluginFromServer(ctx, "port", "v0.8.3", "https://github.com/dirien/pulumi-port-labs/releases/download/v0.8.3")
 	if err != nil {
 		return ProgramResult{
 			Stack:       s,
