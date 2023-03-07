@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/dirien/pulumi-connector/stacks/civo"
+	"github.com/labstack/echo/v4"
 	"reflect"
 
 	"github.com/dirien/pulumi-connector/stacks/aws"
@@ -17,7 +18,7 @@ type ProgramResult struct {
 	StackName   string
 }
 
-func Program(ctx context.Context, props map[string]any) (ProgramResult, error) {
+func Program(ctx context.Context, props map[string]any, log echo.Logger) (ProgramResult, error) {
 	// default values should not be used
 	projectName := "port-labs-test"
 	stackName := "test"
@@ -50,15 +51,32 @@ func Program(ctx context.Context, props map[string]any) (ProgramResult, error) {
 
 	w := s.Workspace()
 
+	log.Info("Installing AWS Plugin")
 	err = w.InstallPlugin(ctx, "aws", "v5.30.0")
-	err = w.InstallPlugin(ctx, "civo", "v2.3.3")
-	err = w.InstallPluginFromServer(ctx, "port", "v0.8.3", "https://github.com/dirien/pulumi-port-labs/releases/download/v0.8.3")
 	if err != nil {
 		return ProgramResult{
 			Stack:       s,
 			ProjectName: projectName,
 			StackName:   stackName,
 		}, fmt.Errorf("error installing AWS resource plugin: %v", err)
+	}
+	log.Info("Installing Civo Plugin")
+	err = w.InstallPlugin(ctx, "civo", "v2.3.3")
+	if err != nil {
+		return ProgramResult{
+			Stack:       s,
+			ProjectName: projectName,
+			StackName:   stackName,
+		}, fmt.Errorf("error installing Civo resource plugin: %v", err)
+	}
+	log.Info("Installing Port Plugin")
+	err = w.InstallPluginFromServer(ctx, "port", "v0.8.3", "https://github.com/dirien/pulumi-port-labs/releases/download/v0.8.3")
+	if err != nil {
+		return ProgramResult{
+			Stack:       s,
+			ProjectName: projectName,
+			StackName:   stackName,
+		}, fmt.Errorf("error installing Port Labs resource plugin: %v", err)
 	}
 	region := props["region"].(string)
 	s.SetConfig(ctx, "aws:region", auto.ConfigValue{

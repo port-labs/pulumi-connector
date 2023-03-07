@@ -15,7 +15,7 @@ import (
 )
 
 type Pulumi struct {
-	logger *echo.Logger
+	logger echo.Logger
 }
 
 func genUUID(len int) string {
@@ -32,18 +32,19 @@ func getStateKey(actionBody *port.ActionBody) string {
 
 func NewPulumi(logger *echo.Logger) *Pulumi {
 	return &Pulumi{
-		logger: logger,
+		logger: *logger,
 	}
 }
 
 func (p *Pulumi) Destroy(ctx context.Context, actionBody *port.ActionBody) error {
+	p.logger.Info("Running pulumi destroy")
 	stateKey := actionBody.Context.Entity
 	props := lo.Assign(map[string]any{}, actionBody.Payload.Entity.Properties, map[string]any{
 		"entity_identifier": stateKey,
 		"blueprint":         actionBody.Context.Blueprint,
 		"run_id":            actionBody.Context.RunID,
 	})
-	program, err := stacks.Program(ctx, props)
+	program, err := stacks.Program(ctx, props, p.logger)
 	if err != nil {
 		return err
 	}
@@ -51,7 +52,7 @@ func (p *Pulumi) Destroy(ctx context.Context, actionBody *port.ActionBody) error
 		return err
 	}
 
-	stdoutStreamer := optdestroy.ProgressStreams((*p.logger).Output())
+	stdoutStreamer := optdestroy.ProgressStreams(p.logger.Output())
 	_, err = program.Stack.Refresh(ctx)
 	if err != nil {
 		return fmt.Errorf("error refreshing stack: %v", err)
@@ -64,10 +65,12 @@ func (p *Pulumi) Destroy(ctx context.Context, actionBody *port.ActionBody) error
 	if err != nil {
 		return fmt.Errorf("failed to remove stack: %v", err)
 	}
+	p.logger.Info("Stack destroyed")
 	return nil
 }
 
 func (p *Pulumi) Up(ctx context.Context, actionBody *port.ActionBody) error {
+	p.logger.Info("Running pulumi up")
 	stateKey := getStateKey(actionBody)
 	props := lo.Assign(map[string]any{}, actionBody.Payload.Entity.Properties, actionBody.Payload.Properties, map[string]any{
 		"entity_identifier": stateKey,
@@ -75,7 +78,7 @@ func (p *Pulumi) Up(ctx context.Context, actionBody *port.ActionBody) error {
 		"run_id":            actionBody.Context.RunID,
 	})
 
-	program, err := stacks.Program(ctx, props)
+	program, err := stacks.Program(ctx, props, p.logger)
 	if err != nil {
 		return err
 	}
@@ -83,7 +86,7 @@ func (p *Pulumi) Up(ctx context.Context, actionBody *port.ActionBody) error {
 		return err
 	}
 
-	stdoutStreamer := optup.ProgressStreams((*p.logger).Output())
+	stdoutStreamer := optup.ProgressStreams(p.logger.Output())
 	_, err = program.Stack.Refresh(ctx)
 	if err != nil {
 		return fmt.Errorf("error refreshing stack: %v", err)
@@ -100,5 +103,6 @@ func (p *Pulumi) Up(ctx context.Context, actionBody *port.ActionBody) error {
 		}
 		return fmt.Errorf("failed update: %v", err)
 	}
+	p.logger.Info("Stack created/updated")
 	return nil
 }

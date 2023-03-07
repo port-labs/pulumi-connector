@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	eLog "github.com/labstack/gommon/log"
 	"net/http"
 	"os"
 
@@ -25,6 +26,12 @@ var (
 
 func main() {
 	e := echo.New()
+	if debug, ok := os.LookupEnv("DEBUG"); ok && debug == "true" {
+		e.Logger.SetLevel(eLog.DEBUG)
+	} else {
+		e.Logger.SetLevel(eLog.ERROR)
+	}
+
 	flag.IntVar(&Port, "port", 8080, "Port for test HTTP server")
 	PortClientId, _ = os.LookupEnv("PORT_CLIENT_ID")
 	if PortClientId == "" {
@@ -51,6 +58,7 @@ func main() {
 	if err != nil {
 		e.Logger.Fatalf("failed to authenticate with Port: %v", err)
 	}
+
 	pu = pulumi.NewPulumi(&e.Logger)
 
 	e.POST("/", func(c echo.Context) error {
@@ -76,10 +84,8 @@ func actionHandler(c echo.Context) (err error) {
 	ctx := context.Background()
 	switch body.Payload.Action.Trigger {
 	case "CREATE", "DAY-2":
-		c.Logger().Infof("Running create action: %s", body.Payload.Action.Identifier)
 		err = pu.Up(ctx, &body)
 	case "DELETE":
-		c.Logger().Infof("Running delete action: %s", body.Payload.Action.Identifier)
 		err = pu.Destroy(ctx, &body)
 	default:
 		return fmt.Errorf("unknown action: %s", body.Payload.Action.Identifier)
