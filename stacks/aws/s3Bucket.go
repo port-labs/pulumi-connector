@@ -1,7 +1,6 @@
 package aws
 
 import (
-	"fmt"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi/config"
 	"strings"
 
@@ -27,16 +26,21 @@ func S3Bucket() pulumi.RunFunc {
 		}
 
 		acl := pulumi.String("private")
-		fmt.Println(len(config.Get(ctx, "bucket_acl")))
 		if len(config.Get(ctx, "bucket_acl")) != 0 {
 			acl = pulumi.String(config.Get(ctx, "bucket_acl"))
 		}
 
+		var bucketName pulumi.String
+		if len(config.Get(ctx, "bucket_name")) > 0 {
+			bucketName = pulumi.String(config.Get(ctx, "bucket_name"))
+		}
+
 		bucket, err := s3.NewBucket(ctx, "bucket", &s3.BucketArgs{
 			Acl:    acl,
-			Bucket: pulumi.String(config.Get(ctx, "bucket_name")),
+			Bucket: bucketName,
 			Tags:   tags,
 		})
+
 		if err != nil {
 			return err
 		}
