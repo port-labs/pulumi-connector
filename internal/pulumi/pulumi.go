@@ -101,7 +101,6 @@ func (p *Pulumi) Up(ctx context.Context, actionBody *port.ActionBody) error {
 		if err != nil {
 			return fmt.Errorf("failed to remove stack: %v", err)
 		}
-		return fmt.Errorf("failed update: %v", err)
 	}
 	p.logger.Info("Stack created/updated")
 	return nil
