@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/dirien/pulumi-connector/internal/port"
-	"github.com/dirien/pulumi-connector/templates"
+	"github.com/dirien/pulumi-connector/stacks"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/pulumi/pulumi/sdk/v3/go/auto/optdestroy"
@@ -43,7 +43,7 @@ func (p *Pulumi) Destroy(ctx context.Context, actionBody *port.ActionBody) error
 		"blueprint":         actionBody.Context.Blueprint,
 		"run_id":            actionBody.Context.RunID,
 	})
-	program, err := templates.Program(ctx, props)
+	program, err := stacks.Program(ctx, props)
 	if err != nil {
 		return err
 	}
@@ -75,7 +75,7 @@ func (p *Pulumi) Up(ctx context.Context, actionBody *port.ActionBody) error {
 		"run_id":            actionBody.Context.RunID,
 	})
 
-	program, err := templates.Program(ctx, props)
+	program, err := stacks.Program(ctx, props)
 	if err != nil {
 		return err
 	}
