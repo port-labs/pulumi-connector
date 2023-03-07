@@ -1,12 +1,12 @@
-package templates
+package stacks
 
 import (
 	"context"
 	"fmt"
-	"github.com/dirien/pulumi-connector/templates/civo"
+	"github.com/dirien/pulumi-connector/stacks/civo"
 	"reflect"
 
-	"github.com/dirien/pulumi-connector/templates/aws"
+	"github.com/dirien/pulumi-connector/stacks/aws"
 	"github.com/pulumi/pulumi/sdk/v3/go/auto"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
